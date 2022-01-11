@@ -4,10 +4,12 @@
 \alias{dance_save}
 \title{Save the log as an rds file.}
 \usage{
-dance_save(path)
+dance_save(path, session_info = TRUE)
 }
 \arguments{
 \item{path}{The path to the rds file.}
+
+\item{session_info}{Whether or not to add session info}
 }
 \description{
 Save the log as an rds file.

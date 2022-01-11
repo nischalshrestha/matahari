@@ -14,7 +14,9 @@
 #' logged unless this is set to `FALSE`.
 #' @param selection The text that is highlighted in the RStudio editor tab in
 #' focus will be logged unless this is set to `FALSE`.
+#' @param session_info Whether or not to save session info
 #' @param defensive A path for `dance_save()`, which is executed after every command
+#'
 #' @importFrom rstudioapi isAvailable getSourceEditorContext
 #' @importFrom tibble tibble add_row
 #' @importFrom rlang abort
@@ -37,7 +39,7 @@
 #' dance_stop()
 #' }
 dance_start <- function(expr = TRUE, value = FALSE, path = FALSE, contents = FALSE,
-                        selection = FALSE, defensive = "") {
+                        selection = FALSE, session_info = TRUE, defensive = "") {
   if (dance_in_progress()) {
     abort("Unable to start new dance while a dance is in progress.")
   }
@@ -58,11 +60,13 @@ dance_start <- function(expr = TRUE, value = FALSE, path = FALSE, contents = FAL
 
     if (!there_is_a_dance()) {
       choreograph_dance()
-      add_session_info(
-        path_ = ie(path, ed$path, NA),
-        contents_ = ie(contents, ed$contents, NA),
-        selection_ = ie(selection, ed$selection, NA)
-      )
+      if (session_info) {
+        add_session_info(
+          path_ = ie(path, ed$path, NA),
+          contents_ = ie(contents, ed$contents, NA),
+          selection_ = ie(selection, ed$selection, NA)
+        )
+      }
     }
 
     # if a previous rds exists with the same path, load it
@@ -81,7 +85,7 @@ dance_start <- function(expr = TRUE, value = FALSE, path = FALSE, contents = FAL
     ), envir = env)
 
     if (nchar(defensive) > 0) {
-      dance_save(defensive)
+      dance_save(defensive, session_info)
     }
 
     TRUE
@@ -203,6 +207,8 @@ dance_tbl <- function() {
 #' Save the log as an rds file.
 #'
 #' @param path The path to the rds file.
+#' @param session_info Whether or not to add session info
+#'
 #' @importFrom readr write_rds
 #' @export
 #' @examples
@@ -221,8 +227,11 @@ dance_tbl <- function() {
 #' # Save your log locally
 #' dance_save("session.rds")
 #' }
-dance_save <- function(path) {
-  add_session_info()
+dance_save <- function(path, session_info = TRUE) {
+
+  if (session_info) {
+    add_session_info()
+  }
 
   tbl <- dance_tbl()
   write_rds(tbl, path)

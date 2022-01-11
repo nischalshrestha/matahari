@@ -10,6 +10,7 @@ dance_start(
   path = FALSE,
   contents = FALSE,
   selection = FALSE,
+  session_info = TRUE,
   defensive = ""
 )
 }
@@ -28,6 +29,8 @@ logged unless this is set to \code{FALSE}.}
 
 \item{selection}{The text that is highlighted in the RStudio editor tab in
 focus will be logged unless this is set to \code{FALSE}.}
+
+\item{session_info}{Whether or not to save session info}
 
 \item{defensive}{A path for \code{dance_save()}, which is executed after every command}
 }
