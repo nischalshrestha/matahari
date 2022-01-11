@@ -9,7 +9,8 @@ dance_start(
   value = FALSE,
   path = FALSE,
   contents = FALSE,
-  selection = FALSE
+  selection = FALSE,
+  defensive = ""
 )
 }
 \arguments{
@@ -27,6 +28,8 @@ logged unless this is set to \code{FALSE}.}
 
 \item{selection}{The text that is highlighted in the RStudio editor tab in
 focus will be logged unless this is set to \code{FALSE}.}
+
+\item{defensive}{A path for \code{dance_save()}, which is executed after every command}
 }
 \description{
 Start logging your R console activity. If you're using RStudio the contents

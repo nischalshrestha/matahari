@@ -14,6 +14,7 @@
 #' logged unless this is set to `FALSE`.
 #' @param selection The text that is highlighted in the RStudio editor tab in
 #' focus will be logged unless this is set to `FALSE`.
+#' @param defensive A path for `dance_save()`, which is executed after every command
 #' @importFrom rstudioapi isAvailable getSourceEditorContext
 #' @importFrom tibble tibble add_row
 #' @importFrom rlang abort
@@ -36,7 +37,7 @@
 #' dance_stop()
 #' }
 dance_start <- function(expr = TRUE, value = FALSE, path = FALSE, contents = FALSE,
-                        selection = FALSE) {
+                        selection = FALSE, defensive = "") {
   if (dance_in_progress()) {
     abort("Unable to start new dance while a dance is in progress.")
   }
@@ -73,6 +74,11 @@ dance_start <- function(expr = TRUE, value = FALSE, path = FALSE, contents = FAL
       selection = ie(selection, ed$selection, NA),
       dt = Sys.time()
     ), envir = env)
+
+    if (nchar(defensive) > 0) {
+      dance_save(defensive)
+    }
+
     TRUE
   }
 
