@@ -65,6 +65,11 @@ dance_start <- function(expr = TRUE, value = FALSE, path = FALSE, contents = FAL
       )
     }
 
+    # if a previous rds exists with the same path, load it
+    if (file.exists(defensive)) {
+      assign(".dance", readRDS(defensive), envir = env)
+    }
+
     d <- get(".dance", envir = env)
     assign(".dance", add_row(d,
       expr = list(ie(expr, expr_, NA)),
