@@ -39,7 +39,8 @@
 #' dance_stop()
 #' }
 dance_start <- function(expr = TRUE, value = FALSE, path = FALSE, contents = FALSE,
-                        selection = FALSE, session_info = TRUE, defensive = "") {
+                        selection = FALSE, session_info = TRUE, defensive = "",
+                        storage = "rds") {
   if (dance_in_progress()) {
     abort("Unable to start new dance while a dance is in progress.")
   }
@@ -70,7 +71,7 @@ dance_start <- function(expr = TRUE, value = FALSE, path = FALSE, contents = FAL
     }
 
     # if a previous rds exists with the same path, load it
-    if (file.exists(defensive)) {
+    if (identical(storage, "rds") && file.exists(defensive)) {
       assign(".dance", readRDS(defensive), envir = env)
     }
 
@@ -85,7 +86,11 @@ dance_start <- function(expr = TRUE, value = FALSE, path = FALSE, contents = FAL
     ), envir = env)
 
     if (nchar(defensive) > 0) {
-      dance_save(defensive, session_info)
+      dance_save(
+        path = defensive,
+        session_info = session_info,
+        storage = storage
+      )
     }
 
     TRUE
@@ -208,6 +213,7 @@ dance_tbl <- function() {
 #'
 #' @param path The path to the rds file.
 #' @param session_info Whether or not to add session info
+#' @param storage Type of file to store the log, which are 'rds', 'sqlite'
 #'
 #' @importFrom readr write_rds
 #' @export
@@ -227,14 +233,19 @@ dance_tbl <- function() {
 #' # Save your log locally
 #' dance_save("session.rds")
 #' }
-dance_save <- function(path, session_info = TRUE) {
-
+dance_save <- function(path, session_info = TRUE, storage = "rds") {
   if (session_info) {
     add_session_info()
   }
 
   tbl <- dance_tbl()
-  write_rds(tbl, path)
+
+  if (identical(storage, "rds")) {
+    write_rds(tbl, path)
+  } else if (identical(storage, "sqlite")) {
+    last_command <- tail(dance_tbl()[['expr']], 1)[[1]]
+    Unravel::log_code(code = rlang::expr_deparse(last_command), user = "rstudio")
+  }
 }
 
 ie <- function(cond, t, f) {
