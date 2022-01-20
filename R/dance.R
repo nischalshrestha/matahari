@@ -55,6 +55,37 @@ dance_start <- function(expr = TRUE, value = FALSE, path = FALSE, contents = FAL
 
     if (editorIsOpen && isAvailable()) {
       ed <- getSourceEditorContext()
+
+      # check if content has changed for the editor
+      last_content <- tryCatch({
+        get(".last_content", envir = env)
+      },
+      error = function(e) NULL
+      )
+      # grab the path/contents of editor
+      change_path <- ie(path, ed$path, NA)
+      new_content <- ie(contents, ed$contents, NA)
+      if (all(!is.na(new_content))) {
+        new_content <- paste0(new_content, collapse = "\n")
+      }
+
+      # if we just started the dance, set the last_content to
+      # the new_content
+      if (is.null(last_content)) {
+        last_content <- new_content
+      }
+
+      # check for changes, and log the new content if there is
+      if (!identical(last_content, new_content)) {
+        Unravel::log_content_change(
+          content = new_content,
+          path = change_path,
+          context = "rstudio"
+        )
+      }
+
+      # store the content for next time
+      assign(".last_content", new_content, envir = env)
     } else {
       ed <- list(path = NA, contents = NA, selection = NA)
     }
@@ -244,7 +275,10 @@ dance_save <- function(path, session_info = TRUE, storage = "rds") {
     write_rds(tbl, path)
   } else if (identical(storage, "sqlite")) {
     last_command <- tail(dance_tbl()[['expr']], 1)[[1]]
-    Unravel::log_code(code = rlang::expr_deparse(last_command), user = "rstudio")
+    Unravel::log_code(
+      code = paste0(rlang::expr_deparse(last_command), collapse = "\n"),
+      context = "rstudio"
+    )
   }
 }
 
